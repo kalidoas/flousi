@@ -98,6 +98,12 @@ npm start
 - `PUT /api/losses/:id` (protected)
 - `DELETE /api/losses/:id` (protected)
 
+### Income
+
+- `GET /api/income` (protected)
+- `POST /api/income` (protected)
+- `DELETE /api/income/:id` (protected)
+
 ### Analytics
 
 - `GET /api/analytics/by-category?period=day|week|month|all` (protected)

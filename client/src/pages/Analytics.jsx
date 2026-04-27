@@ -16,12 +16,12 @@ import {
 import { analyticsApi } from "../lib/analyticsApi.js";
 
 const CATEGORY_LABELS = {
-  LAKHWAA: "لخوا",
-  CAFE: "قهوة/كافيه",
-  FOOD: "أكل",
-  OUTINGS: "خروجات",
-  SHOPPING: "شراء حاجة",
-  OTHER: "أخرى"
+  LAKHWAA: "Leak",
+  CAFE: "Coffee / Cafe",
+  FOOD: "Food",
+  OUTINGS: "Outings",
+  SHOPPING: "Shopping",
+  OTHER: "Other"
 };
 
 export default function Analytics() {
@@ -127,8 +127,8 @@ export default function Analytics() {
                 </div>
               ) : categoryData.length === 0 ? (
                 <EmptyState
-                  title="ماكايناش بيانات للفئات"
-                  description="زيد خسائر باش يبان هنا شكون كياكل الميزانية أكثر."
+                  title="No category data yet"
+                  description="Add some losses to see which category drains your budget the most."
                 />
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -151,8 +151,8 @@ export default function Analytics() {
                 <LoadingSkeleton className="h-64" />
               ) : dayData.length === 0 ? (
                 <EmptyState
-                  title="ماكايناش بيانات يومية"
-                  description="منين تبدأ تدخل الخسائر اليومية غادي يبان الرسم البياني هنا."
+                  title="No daily data yet"
+                  description="Once you enter daily losses, the chart will appear here."
                 />
               ) : (
                 <ResponsiveContainer width="100%" height="100%">

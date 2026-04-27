@@ -3,7 +3,7 @@ export default function ThemeToggle({ theme, onToggle }) {
     <button
       type="button"
       onClick={onToggle}
-      className="rounded-full border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-100 shadow-lg shadow-black/20"
+      className="rounded-full border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-900 shadow-lg shadow-black/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/20"
       aria-label="Toggle theme"
       title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
     >
