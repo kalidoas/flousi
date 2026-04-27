@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LossCategory {
+  LAKHWAA
+  CAFE
+  FOOD
+  OUTINGS
+  SHOPPING
+  OTHER
+}
+
+enum GoalStatus {
+  ACTIVE
+  ACHIEVED
+  PAUSED
+}
+
+model User {
+  id            String             @id @default(cuid())
+  email         String             @unique
+  password      String
+  name          String
+  createdAt     DateTime           @default(now())
+  budget        Budget?
+  lossEntries   LossEntry[]
+  goals         Goal[]
+  contributions GoalContribution[]
+}
+
+model Budget {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  monthlyIncome Decimal  @default(0) @db.Decimal(12, 2)
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LossEntry {
+  id        String       @id @default(cuid())
+  userId    String
+  amount    Decimal      @db.Decimal(12, 2)
+  category  LossCategory
+  note      String       @default("")
+  date      DateTime
+  createdAt DateTime     @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+model Goal {
+  id               String             @id @default(cuid())
+  userId           String
+  name             String
+  emoji            String
+  targetAmount     Decimal            @db.Decimal(14, 2)
+  monthlySavings   Decimal            @db.Decimal(12, 2)
+  amountSaved      Decimal            @default(0) @db.Decimal(14, 2)
+  startDate        DateTime
+  estimatedEndDate DateTime
+  status           GoalStatus         @default(ACTIVE)
+  priority         Int                @default(1)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributions    GoalContribution[]
+
+  @@index([userId, status])
+}
+
+model GoalContribution {
+  id        String   @id @default(cuid())
+  goalId    String
+  userId    String
+  amount    Decimal  @db.Decimal(12, 2)
+  date      DateTime
+  note      String?
+  createdAt DateTime @default(now())
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([goalId, date])
+  @@index([userId, date])
+}
+
