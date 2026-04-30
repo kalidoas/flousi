@@ -65,3 +65,58 @@ export const getPublicUser = (userId) =>
     select: userSelect
   });
 
+export const findUserByEmail = (email) =>
+  prisma.user.findUnique({
+    where: { email },
+    select: { id: true, email: true, name: true }
+  });
+
+export const updateUserPasswordByEmail = async (email, newPassword) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const hashed = await hashPassword(newPassword);
+
+  return prisma.user.update({
+    where: { email },
+    data: { password: hashed }
+  });
+};
+
+export const createPasswordReset = async ({ email, code, expiresAt }) => {
+  await prisma.passwordReset.updateMany({
+    where: { email, used: false },
+    data: { used: true }
+  });
+
+  return prisma.passwordReset.create({
+    data: {
+      email,
+      code,
+      expiresAt
+    }
+  });
+};
+
+export const findValidPasswordReset = (email, code) =>
+  prisma.passwordReset.findFirst({
+    where: {
+      email,
+      code,
+      used: false,
+      expiresAt: { gt: new Date() }
+    },
+    orderBy: { createdAt: "desc" }
+  });
+
+export const markPasswordResetUsed = (id) =>
+  prisma.passwordReset.update({
+    where: { id },
+    data: { used: true }
+  });
+

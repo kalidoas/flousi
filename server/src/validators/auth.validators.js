@@ -25,3 +25,21 @@ export const loginSchema = z.object({
   query: z.object({})
 });
 
+export const forgotPasswordSchema = z.object({
+  body: z.object({
+    email
+  }),
+  params: z.object({}),
+  query: z.object({})
+});
+
+export const resetPasswordSchema = z.object({
+  body: z.object({
+    email,
+    code: z.string().regex(/^\d{6}$/, "Reset code must be 6 digits"),
+    newPassword: password
+  }),
+  params: z.object({}),
+  query: z.object({})
+});
+

@@ -1,5 +1,15 @@
 import { env } from "../config/env.js";
-import { createUser, authenticateUser, getPublicUser } from "../services/auth.service.js";
+import {
+  authenticateUser,
+  createPasswordReset,
+  createUser,
+  findUserByEmail,
+  findValidPasswordReset,
+  getPublicUser,
+  markPasswordResetUsed,
+  updateUserPasswordByEmail
+} from "../services/auth.service.js";
+import { sendPasswordResetCode } from "../services/email.service.js";
 import { buildCookieOptions, signToken } from "../utils/jwt.js";
 
 const issueToken = (userId) => signToken(userId);
@@ -46,5 +56,38 @@ export const me = async (req, res, next) => {
   }
 
   return res.status(200).json({ user });
+};
+
+const generateResetCode = () => String(Math.floor(100000 + Math.random() * 900000));
+
+export const forgotPassword = async (req, res) => {
+  const { email } = req.validated.body;
+  const user = await findUserByEmail(email);
+
+  if (!user) {
+    return res.status(200).json({ message: "If the account exists, a reset code was sent." });
+  }
+
+  const code = generateResetCode();
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+  await createPasswordReset({ email, code, expiresAt });
+  await sendPasswordResetCode({ to: email, code });
+
+  return res.status(200).json({ message: "Reset code sent" });
+};
+
+export const resetPassword = async (req, res, next) => {
+  const { email, code, newPassword } = req.validated.body;
+  const resetEntry = await findValidPasswordReset(email, code);
+
+  if (!resetEntry) {
+    return next({ statusCode: 400, message: "Invalid or expired reset code" });
+  }
+
+  await updateUserPasswordByEmail(email, newPassword);
+  await markPasswordResetUsed(resetEntry.id);
+
+  return res.status(200).json({ message: "Password updated" });
 };
 

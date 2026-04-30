@@ -68,7 +68,12 @@ export default function Analytics() {
           }))
         );
 
-        setTotals(totalsData);
+        const normalizedTotals = {
+          income: Number(totalsData.totalIncome ?? totalsData.income ?? 0),
+          loss: Number(totalsData.totalLosses ?? totalsData.loss ?? 0),
+          net: Number(totalsData.net ?? 0)
+        };
+        setTotals(normalizedTotals);
         setBiggestDrain(byCategory.biggestDrain || null);
       } catch (apiError) {
           setError(apiError.response?.data?.message || "تعذر تحميل التحليلات");

@@ -197,10 +197,13 @@ export default function Dashboard({ user, setUser }) {
       // 3. Update budget on the server
       await api.put("/budget", { monthlyIncome: newBudgetValue });
 
-      // 4. Update local state
-      setBudget(newBudgetValue);
-      setBudgetAmount(String(newBudgetValue));
-      setLosses((prev) => sortNewestFirst([lossResponse.data.loss, ...prev]));
+      // 4. Update local state immediately
+      setLosses((prev) => [lossResponse.data.loss, ...prev]);
+      setBudget((prev) => {
+        const updated = Number(prev || 0) - lossAmount;
+        setBudgetAmount(String(updated));
+        return updated;
+      });
       setNewLoss((prev) => ({ ...prev, amount: "", note: "" }));
 
       // 5. Dispatch event to sync other components
@@ -258,9 +261,12 @@ export default function Dashboard({ user, setUser }) {
       const newBudgetValue = budget + incomeAmount;
       await api.put("/budget", { monthlyIncome: newBudgetValue });
 
-      setBudget(newBudgetValue);
-      setBudgetAmount(String(newBudgetValue));
-      setIncomes((prev) => sortNewestFirst([response.data.income, ...prev]));
+      setIncomes((prev) => [response.data.income, ...prev]);
+      setBudget((prev) => {
+        const updated = Number(prev || 0) + incomeAmount;
+        setBudgetAmount(String(updated));
+        return updated;
+      });
       setNewIncome((prev) => ({ ...prev, amount: "", note: "" }));
       dispatchFinanceUpdate();
     } finally {
