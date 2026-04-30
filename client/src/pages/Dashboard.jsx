@@ -62,6 +62,9 @@ const getStatusMeta = (budgetValue, remainingPercent) => {
 
 export default function Dashboard({ user, setUser }) {
   const navigate = useNavigate();
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [budgetAmount, setBudgetAmount] = useState("0");
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -157,6 +160,25 @@ export default function Dashboard({ user, setUser }) {
     navigate("/login");
   };
 
+  const handleSwitchAccount = async () => {
+    await handleLogout();
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeletingAccount(true);
+    try {
+      await api.delete("/auth/account");
+      setAuthToken(null);
+      localStorage.removeItem(authTokenKey);
+      setUser(null);
+      navigate("/register");
+    } finally {
+      setDeletingAccount(false);
+      setConfirmDeleteOpen(false);
+      setAccountMenuOpen(false);
+    }
+  };
+
   const handleSaveBudget = async (amount) => {
     setSavingBudget(true);
     try {
@@ -208,6 +230,9 @@ export default function Dashboard({ user, setUser }) {
 
       // 5. Dispatch event to sync other components
       dispatchFinanceUpdate();
+    } catch (error) {
+      console.error("Failed to create loss:", error);
+      throw error;
     } finally {
       setSavingLoss(false);
     }
@@ -269,6 +294,9 @@ export default function Dashboard({ user, setUser }) {
       });
       setNewIncome((prev) => ({ ...prev, amount: "", note: "" }));
       dispatchFinanceUpdate();
+    } catch (error) {
+      console.error("Failed to create income:", error);
+      throw error;
     } finally {
       setSavingIncome(false);
     }
@@ -301,16 +329,58 @@ export default function Dashboard({ user, setUser }) {
             <h1 className="text-2xl font-bold">لوحة التحكم</h1>
             <p className="text-sm text-slate-600 dark:text-slate-300">مرحباً {user?.name}، هذه نظرة سريعة على فلوسك.</p>
           </div>
-          <div className="flex flex-wrap gap-2 sm:justify-end">
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             <Link className="rounded-md bg-cyan-600 px-4 py-2 text-sm text-white" to="/analytics">
               التحليلات
             </Link>
             <Link className="rounded-md bg-indigo-600 px-4 py-2 text-sm text-white" to="/goals">
               الأهداف
             </Link>
-            <button className="rounded-md bg-slate-800 px-4 py-2 text-sm text-white" onClick={handleLogout}>
-              خروج
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setAccountMenuOpen((prev) => !prev)}
+                className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-900"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-sm font-semibold text-white">
+                  {(user?.name || "?").slice(0, 1).toUpperCase()}
+                </span>
+                <span className="hidden text-sm font-semibold sm:block">{user?.name || "الحساب"}</span>
+              </button>
+
+              {accountMenuOpen ? (
+                <div className="absolute left-0 z-40 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-3 text-sm shadow-lg dark:border-slate-800 dark:bg-slate-900">
+                  <div className="mb-3">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">معلومات الحساب</p>
+                    <p className="font-semibold">{user?.name || "-"}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email || "-"}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={handleSwitchAccount}
+                      className="w-full rounded-md bg-slate-100 px-3 py-2 text-left dark:bg-slate-800"
+                    >
+                      تبديل الحساب
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteOpen(true)}
+                      className="w-full rounded-md bg-rose-100 px-3 py-2 text-left text-rose-700 dark:bg-rose-900/40 dark:text-rose-200"
+                    >
+                      حذف الحساب
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full rounded-md bg-slate-800 px-3 py-2 text-left text-white"
+                    >
+                      تسجيل الخروج
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </header>
 
@@ -552,6 +622,34 @@ export default function Dashboard({ user, setUser }) {
         onSave={handleSaveBudget}
         isSaving={savingBudget}
       />
+
+      {confirmDeleteOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100">
+            <h2 className="mb-2 text-lg font-semibold">تأكيد حذف الحساب</h2>
+            <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
+              سيتم حذف كل بياناتك نهائياً. هل أنت متأكد؟
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deletingAccount}
+                className="flex-1 rounded-md bg-rose-600 px-4 py-2 font-semibold text-white disabled:opacity-60"
+              >
+                {deletingAccount ? "جارٍ الحذف..." : "حذف الحساب"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteOpen(false)}
+                className="rounded-md bg-slate-200 px-4 py-2 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

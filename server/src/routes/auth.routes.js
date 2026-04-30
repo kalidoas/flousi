@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { forgotPassword, login, logout, me, register, resetPassword } from "../controllers/auth.controller.js";
+import { deleteAccount, forgotPassword, login, logout, me, register, resetPassword } from "../controllers/auth.controller.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validate.js";
 import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema } from "../validators/auth.validators.js";
@@ -13,6 +13,7 @@ router.post("/forgot-password", validate(forgotPasswordSchema), asyncHandler(for
 router.post("/reset-password", validate(resetPasswordSchema), asyncHandler(resetPassword));
 router.post("/logout", asyncHandler(logout));
 router.get("/me", requireAuth, asyncHandler(me));
+router.delete("/account", requireAuth, asyncHandler(deleteAccount));
 
 export default router;
 

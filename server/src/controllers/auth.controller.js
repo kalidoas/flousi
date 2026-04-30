@@ -3,6 +3,7 @@ import {
   authenticateUser,
   createPasswordReset,
   createUser,
+  deleteUserAccount,
   findUserByEmail,
   findValidPasswordReset,
   getPublicUser,
@@ -89,5 +90,17 @@ export const resetPassword = async (req, res, next) => {
   await markPasswordResetUsed(resetEntry.id);
 
   return res.status(200).json({ message: "Password updated" });
+};
+
+export const deleteAccount = async (req, res, next) => {
+  const user = await getPublicUser(req.auth.userId);
+
+  if (!user) {
+    return next({ statusCode: 404, message: "User not found" });
+  }
+
+  await deleteUserAccount({ userId: req.auth.userId, email: user.email });
+
+  return res.status(200).json({ success: true });
 };
 
