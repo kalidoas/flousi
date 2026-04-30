@@ -28,7 +28,11 @@ export const register = async (req, res) => {
 
   return res.status(201).json({
     message: "Account created",
-    user,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email
+    },
     token
   });
 };
@@ -42,7 +46,11 @@ export const login = async (req, res) => {
 
   return res.status(200).json({
     message: "Logged in",
-    user,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email
+    },
     token
   });
 };
@@ -103,4 +111,3 @@ export const deleteAccount = async (req, res, next) => {
 
   return res.status(200).json({ success: true });
 };
-

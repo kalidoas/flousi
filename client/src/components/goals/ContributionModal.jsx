@@ -36,8 +36,8 @@ export default function ContributionModal({ goal, isOpen, onClose, onSubmit, isS
   };
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 p-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100">
+    <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
+      <form onSubmit={handleSubmit} className="h-full w-full max-w-none rounded-none border border-slate-200 bg-white p-6 text-slate-900 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 sm:h-auto sm:max-w-md sm:rounded-2xl sm:p-5">
         <h3 className="mb-3 text-lg font-semibold">إضافة مساهمة - {goal.emoji} {goal.name}</h3>
         {error && <p className="mb-3 text-sm text-rose-500">{error}</p>}
         <input

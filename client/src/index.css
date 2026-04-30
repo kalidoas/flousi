@@ -18,6 +18,9 @@ body {
   color: #0f172a;
   transition: background-color 180ms ease, color 180ms ease;
 }
+button {
+  min-height: 48px;
+}
 
 .dark body {
   background: #020617;

@@ -88,7 +88,7 @@ export default function Analytics() {
   const netColor = totals.net >= 0 ? "text-emerald-500 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400";
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <main className="min-h-screen bg-slate-50 px-4 py-4 pb-24 text-base text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-6 sm:py-6 sm:pb-6 md:text-base">
       <section className="mx-auto max-w-6xl">
         <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -97,8 +97,14 @@ export default function Analytics() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Link to="/" className="rounded-md bg-slate-800 px-4 py-2 text-sm text-white">لوحة التحكم</Link>
-            <Link to="/goals" className="rounded-md bg-indigo-600 px-4 py-2 text-sm text-white">الأهداف</Link>
+            <Link to="/" className="hidden items-center gap-2 rounded-md bg-slate-800 px-4 py-2 text-sm text-white sm:inline-flex">
+              <span className="text-base">🏠</span>
+              <span>لوحة التحكم</span>
+            </Link>
+            <Link to="/goals" className="hidden items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm text-white sm:inline-flex">
+              <span className="text-base">🎯</span>
+              <span>الأهداف</span>
+            </Link>
             <select
               className="rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               value={period}
@@ -145,7 +151,7 @@ export default function Analytics() {
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
             <h2 className="mb-3 text-lg font-semibold">الدخل حسب المصدر</h2>
-            <div className="h-80">
+            <div className="h-[250px] sm:h-[350px]">
               {loading ? (
                 <div className="space-y-3">
                   <LoadingSkeleton className="h-64" />
@@ -171,7 +177,7 @@ export default function Analytics() {
 
           <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
             <h2 className="mb-3 text-lg font-semibold">الخسائر حسب الفئة</h2>
-            <div className="h-80">
+            <div className="h-[250px] sm:h-[350px]">
               {loading ? (
                 <div className="space-y-3">
                   <LoadingSkeleton className="h-64" />
@@ -197,7 +203,7 @@ export default function Analytics() {
 
           <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
             <h2 className="mb-3 text-lg font-semibold">الخسائر اليومية</h2>
-            <div className="h-80">
+            <div className="h-[250px] sm:h-[350px]">
               {loading ? (
                 <LoadingSkeleton className="h-64" />
               ) : dayData.length === 0 ? (

@@ -27,9 +27,12 @@ export default function Login({ setUser, setAuthLoading }) {
 
     try {
       const response = await api.post("/auth/login", formData);
-      localStorage.setItem(authTokenKey, response.data.token);
-      setAuthToken(response.data.token);
-      setUser(response.data.user);
+      const { user, token } = response.data;
+      if (token) {
+        localStorage.setItem(authTokenKey, token);
+        setAuthToken(token);
+      }
+      setUser(user);
       setAuthLoading(false);
       navigate("/");
     } catch (apiError) {
@@ -137,8 +140,8 @@ export default function Login({ setUser, setAuthLoading }) {
       </form>
 
       {resetOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
+          <div className="h-full w-full max-w-none rounded-none border border-slate-200 bg-white p-6 text-slate-900 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 sm:h-auto sm:max-w-md sm:rounded-2xl">
             <h2 className="mb-2 text-lg font-semibold">استرجاع كلمة المرور</h2>
             <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
               {resetStep === "request" ? "أدخل بريدك لإرسال كود الاسترجاع." : "أدخل الكود وكلمة المرور الجديدة."}
@@ -208,4 +211,3 @@ export default function Login({ setUser, setAuthLoading }) {
     </main>
   );
 }
-

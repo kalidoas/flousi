@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.routes.js";
 import budgetRoutes from "./routes/budget.routes.js";
 import goalRoutes from "./routes/goal.routes.js";
 import lossRoutes from "./routes/loss.routes.js";
+import incomeRoutes from "./routes/income.routes.js";
 
 export const createApp = () => {
   const app = express();
@@ -37,10 +38,10 @@ export const createApp = () => {
   app.use("/api/budget", budgetRoutes);
   app.use("/api/goals", goalRoutes);
   app.use("/api/losses", lossRoutes);
+  app.use("/api/income", incomeRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
 
   return app;
 };
-

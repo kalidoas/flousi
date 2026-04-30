@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import BudgetModal from "../components/BudgetModal.jsx";
 import EmptyState from "../components/EmptyState.jsx";
@@ -62,6 +62,7 @@ const getStatusMeta = (budgetValue, remainingPercent) => {
 
 export default function Dashboard({ user, setUser }) {
   const navigate = useNavigate();
+  const menuRef = useRef(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -121,6 +122,17 @@ export default function Dashboard({ user, setUser }) {
 
     return () => window.removeEventListener("flousi:finance-updated", refresh);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setAccountMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const totalIncomeThisMonth = useMemo(
@@ -220,7 +232,8 @@ export default function Dashboard({ user, setUser }) {
       await api.put("/budget", { monthlyIncome: newBudgetValue });
 
       // 4. Update local state immediately
-      setLosses((prev) => [lossResponse.data.loss, ...prev]);
+      const createdLoss = lossResponse.data.loss || lossResponse.data;
+      setLosses((prev) => [createdLoss, ...prev]);
       setBudget((prev) => {
         const updated = Number(prev || 0) - lossAmount;
         setBudgetAmount(String(updated));
@@ -277,16 +290,17 @@ export default function Dashboard({ user, setUser }) {
 
     try {
       const response = await api.post("/income", {
-        amount: incomeAmount,
+        amount: Number(incomeAmount),
         source: newIncome.source,
-        note: newIncome.note,
-        date: newIncome.date
+        date: newIncome.date,
+        note: newIncome.note
       });
 
       const newBudgetValue = budget + incomeAmount;
       await api.put("/budget", { monthlyIncome: newBudgetValue });
 
-      setIncomes((prev) => [response.data.income, ...prev]);
+      const createdIncome = response.data.income || response.data;
+      setIncomes((prev) => [createdIncome, ...prev]);
       setBudget((prev) => {
         const updated = Number(prev || 0) + incomeAmount;
         setBudgetAmount(String(updated));
@@ -322,7 +336,7 @@ export default function Dashboard({ user, setUser }) {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <main className="min-h-screen bg-slate-50 px-4 py-4 pb-24 text-base text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-6 sm:py-6 sm:pb-6 md:text-base">
       <section className="mx-auto max-w-6xl">
         <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -330,11 +344,13 @@ export default function Dashboard({ user, setUser }) {
             <p className="text-sm text-slate-600 dark:text-slate-300">مرحباً {user?.name}، هذه نظرة سريعة على فلوسك.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-            <Link className="rounded-md bg-cyan-600 px-4 py-2 text-sm text-white" to="/analytics">
-              التحليلات
+            <Link className="hidden items-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-sm text-white sm:inline-flex" to="/analytics">
+              <span className="text-base">📊</span>
+              <span>التحليلات</span>
             </Link>
-            <Link className="rounded-md bg-indigo-600 px-4 py-2 text-sm text-white" to="/goals">
-              الأهداف
+            <Link className="hidden items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm text-white sm:inline-flex" to="/goals">
+              <span className="text-base">🎯</span>
+              <span>الأهداف</span>
             </Link>
             <div className="relative">
               <button
@@ -349,7 +365,10 @@ export default function Dashboard({ user, setUser }) {
               </button>
 
               {accountMenuOpen ? (
-                <div className="absolute left-0 z-40 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-3 text-sm shadow-lg dark:border-slate-800 dark:bg-slate-900">
+                <div
+                  ref={menuRef}
+                  className="fixed left-4 right-4 top-20 z-40 w-auto rounded-xl border border-slate-200 bg-white p-3 text-sm shadow-lg dark:border-slate-800 dark:bg-slate-900 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-64"
+                >
                   <div className="mb-3">
                     <p className="text-xs text-slate-500 dark:text-slate-400">معلومات الحساب</p>
                     <p className="font-semibold">{user?.name || "-"}</p>
@@ -624,8 +643,8 @@ export default function Dashboard({ user, setUser }) {
       />
 
       {confirmDeleteOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
+          <div className="h-full w-full max-w-none rounded-none border border-slate-200 bg-white p-6 text-slate-900 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 sm:h-auto sm:max-w-md sm:rounded-2xl">
             <h2 className="mb-2 text-lg font-semibold">تأكيد حذف الحساب</h2>
             <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
               سيتم حذف كل بياناتك نهائياً. هل أنت متأكد؟

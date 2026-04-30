@@ -216,7 +216,7 @@ export default function Goals() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <main className="min-h-screen bg-slate-50 px-4 py-4 pb-24 text-base text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-6 sm:py-6 sm:pb-6 md:text-base">
       <section className="mx-auto max-w-5xl">
         <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -224,11 +224,13 @@ export default function Goals() {
             <p className="text-sm text-slate-600 dark:text-slate-300">خطط وحقق أهداف الادخار ديالك مع فلوسي.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link to="/" className="rounded-md bg-slate-800 px-4 py-2 text-sm text-white">
-              لوحة التحكم
+            <Link to="/" className="hidden items-center gap-2 rounded-md bg-slate-800 px-4 py-2 text-sm text-white sm:inline-flex">
+              <span className="text-base">🏠</span>
+              <span>لوحة التحكم</span>
             </Link>
-            <Link to="/analytics" className="rounded-md bg-cyan-600 px-4 py-2 text-sm text-white">
-              التحليلات
+            <Link to="/analytics" className="hidden items-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-sm text-white sm:inline-flex">
+              <span className="text-base">📊</span>
+              <span>التحليلات</span>
             </Link>
             <button
               onClick={() => {
