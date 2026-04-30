@@ -1,5 +1,6 @@
 import { prisma } from "../config/prisma.js";
 import { comparePassword, hashPassword } from "../utils/password.js";
+import crypto from "crypto";
 
 const userSelect = {
   id: true,
@@ -131,3 +132,31 @@ export const markPasswordResetUsed = (id) =>
     data: { used: true }
   });
 
+export const findOrCreateGoogleUser = async ({ email, name }) => {
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    return {
+      id: existing.id,
+      email: existing.email,
+      name: existing.name,
+      createdAt: existing.createdAt
+    };
+  }
+
+  const tempPassword = crypto.randomUUID();
+  const hashed = await hashPassword(tempPassword);
+
+  return prisma.user.create({
+    data: {
+      email,
+      name,
+      password: hashed,
+      budget: {
+        create: {
+          monthlyIncome: 0
+        }
+      }
+    },
+    select: userSelect
+  });
+};

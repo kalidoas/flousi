@@ -22,6 +22,14 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get("token");
+    if (urlToken) {
+      localStorage.setItem(authTokenKey, urlToken);
+      setAuthToken(urlToken);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
     const token = localStorage.getItem(authTokenKey);
     if (!token) {
       setAuthLoading(false);

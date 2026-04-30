@@ -2,8 +2,10 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import passport from "passport";
 
 import { env } from "./config/env.js";
+import "./config/passport.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
 import authRoutes from "./routes/auth.routes.js";
@@ -28,6 +30,7 @@ export const createApp = () => {
   );
   app.use(express.json({ limit: "1mb" }));
   app.use(cookieParser());
+  app.use(passport.initialize());
 
   app.get("/api/health", (_req, res) => {
     res.status(200).json({ status: "ok" });

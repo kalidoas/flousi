@@ -16,6 +16,9 @@ export const env = {
   nodeEnv: process.env.NODE_ENV || "development",
   port: Number(process.env.PORT || 4000),
   clientOrigin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+  frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
   databaseUrl: process.env.DATABASE_URL,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
@@ -23,4 +26,3 @@ export const env = {
   isProduction: process.env.NODE_ENV === "production",
   trustProxy: toBoolean(process.env.TRUST_PROXY || "false")
 };
-

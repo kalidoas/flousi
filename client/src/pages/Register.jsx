@@ -25,7 +25,14 @@ export default function Register({ setUser, setAuthLoading }) {
       setAuthLoading(false);
       navigate("/");
     } catch (apiError) {
-      setError(apiError.response?.data?.message || "تعذر إنشاء الحساب");
+      const status = apiError.response?.status;
+      if (!apiError.response) {
+        setError("تحقق من اتصالك بالإنترنت");
+      } else if (status === 409) {
+        setError("هذا البريد مستخدم بالفعل");
+      } else {
+        setError(apiError.response?.data?.message || "تعذر إنشاء الحساب");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -83,4 +90,3 @@ export default function Register({ setUser, setAuthLoading }) {
     </main>
   );
 }
-

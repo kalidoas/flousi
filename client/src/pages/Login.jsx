@@ -36,7 +36,14 @@ export default function Login({ setUser, setAuthLoading }) {
       setAuthLoading(false);
       navigate("/");
     } catch (apiError) {
-      setError(apiError.response?.data?.message || "تعذر تسجيل الدخول");
+      const status = apiError.response?.status;
+      if (!apiError.response) {
+        setError("تحقق من اتصالك بالإنترنت");
+      } else if (status === 401) {
+        setError("البريد الإلكتروني أو كلمة المرور غلط");
+      } else {
+        setError(apiError.response?.data?.message || "تعذر تسجيل الدخول");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -124,6 +131,16 @@ export default function Login({ setUser, setAuthLoading }) {
           disabled={isSubmitting}
         >
           {isSubmitting ? "جارٍ تسجيل الدخول..." : "تسجيل الدخول"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            window.location.href = "https://flousi-production.up.railway.app/api/auth/google";
+          }}
+          className="mt-3 w-full rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+        >
+          تسجيل الدخول بـ Google
         </button>
 
         <button

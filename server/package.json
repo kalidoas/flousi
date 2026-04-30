@@ -26,6 +26,8 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.13",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "zod": "^3.24.3"
   },
   "devDependencies": {
@@ -33,4 +35,3 @@
     "prisma": "^6.7.0"
   }
 }
-
