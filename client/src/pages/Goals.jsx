@@ -61,7 +61,7 @@ export default function Goals() {
         )
       );
     } catch (apiError) {
-      setError(apiError.response?.data?.message || "Unable to load goals");
+      setError(apiError.response?.data?.message || "تعذر تحميل الأهداف");
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,14 @@ export default function Goals() {
     () => activeGoals.reduce((sum, goal) => sum + Number(goal.monthlySavings || 0), 0),
     [activeGoals]
   );
-  const availableAfterLosses = useMemo(() => Math.max(0, budget - monthlyLosses), [budget, monthlyLosses]);
+  const totalGoalContributions = useMemo(
+    () => goals.reduce((sum, goal) => sum + Number(goal.amountSaved || 0), 0),
+    [goals]
+  );
+  const availableAfterLosses = useMemo(
+    () => Math.max(0, budget - monthlyLosses - totalGoalContributions),
+    [budget, monthlyLosses, totalGoalContributions]
+  );
   const hasCommitmentRisk = totalCommitment > availableAfterLosses;
 
   const persistGoalOrder = async (nextOrder) => {
@@ -162,32 +169,37 @@ export default function Goals() {
       setShowCreateForm(false);
       await loadGoals();
     } catch (apiError) {
-      setError(apiError.response?.data?.message || "Unable to save goal");
+      setError(apiError.response?.data?.message || "تعذر حفظ الهدف");
     } finally {
       setIsSaving(false);
+      window.dispatchEvent(new Event("flousi:finance-updated"));
     }
   };
 
   const handleDelete = async (goalId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this goal?");
+    const confirmDelete = window.confirm("هل أنت متأكد أنك تريد حذف هذا الهدف؟");
     if (!confirmDelete) {
       return;
     }
 
     await goalsApi.deleteGoal(goalId);
     await loadGoals();
+    window.dispatchEvent(new Event("flousi:finance-updated"));
   };
 
   const handleContribute = async (goalId, payload) => {
     setIsContributing(true);
     try {
       await goalsApi.contribute(goalId, payload);
+      const newBudget = budget - payload.amount;
+      await api.put("/budget", { monthlyIncome: newBudget });
       setContributionGoal(null);
       await loadGoals();
     } catch (apiError) {
-      setError(apiError.response?.data?.message || "Unable to add contribution");
+      setError(apiError.response?.data?.message || "تعذر إضافة المساهمة");
     } finally {
       setIsContributing(false);
+      window.dispatchEvent(new Event("flousi:finance-updated"));
     }
   };
 
@@ -197,7 +209,9 @@ export default function Goals() {
       fireCelebrate();
       await loadGoals();
     } catch (apiError) {
-      setError(apiError.response?.data?.message || "Unable to update goal status");
+      setError(apiError.response?.data?.message || "تعذر تحديث حالة الهدف");
+    } finally {
+      window.dispatchEvent(new Event("flousi:finance-updated"));
     }
   };
 
@@ -206,15 +220,15 @@ export default function Goals() {
       <section className="mx-auto max-w-5xl">
         <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Goals</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-300">Plan and reach your savings goals with Flousi.</p>
+            <h1 className="text-2xl font-bold">الأهداف</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-300">خطط وحقق أهداف الادخار ديالك مع فلوسي.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Link to="/" className="rounded-md bg-slate-800 px-4 py-2 text-sm text-white">
-              Dashboard
+              لوحة التحكم
             </Link>
             <Link to="/analytics" className="rounded-md bg-cyan-600 px-4 py-2 text-sm text-white">
-              Analytics
+              التحليلات
             </Link>
             <button
               onClick={() => {
@@ -223,7 +237,7 @@ export default function Goals() {
               }}
               className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950"
             >
-              + New Goal
+              + هدف جديد
             </button>
           </div>
         </header>
@@ -232,22 +246,22 @@ export default function Goals() {
 
         <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-3">
           <article className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-sm text-slate-600 dark:text-slate-300">Monthly savings for all goals</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">الادخار الشهري لكل الأهداف</p>
             <p className="text-xl font-semibold">{totalCommitment.toFixed(2)} MAD</p>
           </article>
           <article className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-sm text-slate-600 dark:text-slate-300">Available after losses</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">المتاح بعد الخسائر والالتزامات</p>
             <p className="text-xl font-semibold">{availableAfterLosses.toFixed(2)} MAD</p>
           </article>
           <article className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-sm text-slate-600 dark:text-slate-300">Current month losses</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">خسائر الشهر الحالي</p>
             <p className="text-xl font-semibold text-rose-500 dark:text-rose-400">{monthlyLosses.toFixed(2)} MAD</p>
           </article>
         </div>
 
         {hasCommitmentRisk ? (
           <p className="mb-5 rounded-xl bg-amber-900/40 p-3 text-sm text-amber-200">
-            Warning: total goal commitments ({totalCommitment.toFixed(2)} MAD) are higher than what is available after losses ({availableAfterLosses.toFixed(2)} MAD).
+            تنبيه: مجموع التزامات الأهداف ({totalCommitment.toFixed(2)} درهم) أكبر من المتاح بعد الخسائر ({availableAfterLosses.toFixed(2)} درهم).
           </p>
         ) : null}
 
@@ -275,8 +289,8 @@ export default function Goals() {
         {!loading ? (
           <section className="mb-6">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Active goals ({activeGoals.length})</h2>
-              {isReordering ? <span className="text-xs text-slate-500 dark:text-slate-400">Reordering...</span> : null}
+              <h2 className="text-lg font-semibold">الأهداف النشطة ({activeGoals.length})</h2>
+              {isReordering ? <span className="text-xs text-slate-500 dark:text-slate-400">جارٍ إعادة الترتيب...</span> : null}
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {orderedActiveGoals.map((goal) => (
@@ -304,14 +318,14 @@ export default function Goals() {
             </div>
             {activeGoals.length === 0 ? (
               <EmptyState
-                title="No active goals yet"
-                description="Add your first goal to start planning for a house, car, or trip."
+                title="لا توجد أهداف نشطة بعد"
+                description="أضف أول هدف لتبدأ التخطيط للدار أو السيارة أو العطلة."
                 action={
                   <button
                     onClick={() => setShowCreateForm(true)}
                     className="rounded-md bg-emerald-500 px-4 py-2 font-semibold text-slate-950"
                   >
-                    + New Goal
+                    + هدف جديد
                   </button>
                 }
               />
@@ -321,7 +335,7 @@ export default function Goals() {
 
         {!loading && achievedGoals.length > 0 ? (
           <section>
-            <h2 className="mb-3 text-lg font-semibold">Achieved goals 🎉 ({achievedGoals.length})</h2>
+            <h2 className="mb-3 text-lg font-semibold">الأهداف المحققة 🎉 ({achievedGoals.length})</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {achievedGoals.map((goal) => (
                 <GoalCard
@@ -343,8 +357,8 @@ export default function Goals() {
         ) : !loading && activeGoals.length === 0 ? (
           <section className="mt-6">
             <EmptyState
-              title="No achieved goals yet"
-              description="When you finish a goal, it will appear here with a celebration 🎉"
+              title="لا توجد أهداف محققة بعد"
+              description="عندما تكمل هدفاً سيظهر هنا مع الاحتفال 🎉"
             />
           </section>
         ) : null}
@@ -353,6 +367,7 @@ export default function Goals() {
       <ContributionModal
         isOpen={Boolean(contributionGoal)}
         goal={contributionGoal}
+        budget={budget}
         onClose={() => setContributionGoal(null)}
         onSubmit={handleContribute}
         isSubmitting={isContributing}

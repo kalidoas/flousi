@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import ThemeToggle from "./components/ThemeToggle.jsx";
-import { api } from "./lib/api.js";
+import { api, authTokenKey, setAuthToken } from "./lib/api.js";
 import Analytics from "./pages/Analytics.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Goals from "./pages/Goals.jsx";
@@ -20,12 +20,22 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
+    const token = localStorage.getItem(authTokenKey);
+    if (token) {
+      setAuthToken(token);
+    }
+    if (!token) {
+      setAuthLoading(false);
+      return;
+    }
     const loadMe = async () => {
       try {
         const response = await api.get("/auth/me");
         setUser(response.data.user);
       } catch (_error) {
         setUser(null);
+        setAuthToken(null);
+        localStorage.removeItem(authTokenKey);
       } finally {
         setAuthLoading(false);
       }
@@ -82,4 +92,3 @@ export default function App() {
     </div>
   );
 }
-

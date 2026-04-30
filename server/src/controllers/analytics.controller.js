@@ -1,4 +1,4 @@
-import { getLossesByCategory, getLossesByDay } from "../services/analytics.service.js";
+import { getIncomeBySource, getLossesByCategory, getLossesByDay, getTotals } from "../services/analytics.service.js";
 
 export const getAnalyticsByCategory = async (req, res) => {
   const { period = "month" } = req.validated.query;
@@ -20,6 +20,27 @@ export const getAnalyticsByDay = async (req, res) => {
     period,
     totalLost: result.totalLost,
     days: result.days
+  });
+};
+
+export const getAnalyticsTotals = async (req, res) => {
+  const { period = "month" } = req.validated.query;
+  const totals = await getTotals(req.auth.userId, period);
+
+  return res.status(200).json({
+    period,
+    ...totals
+  });
+};
+
+export const getAnalyticsIncomeBySource = async (req, res) => {
+  const { period = "month" } = req.validated.query;
+  const result = await getIncomeBySource(req.auth.userId, period);
+
+  return res.status(200).json({
+    period,
+    totalIncome: result.totalIncome,
+    sources: result.sources
   });
 };
 

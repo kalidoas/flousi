@@ -2,7 +2,9 @@ import { env } from "../config/env.js";
 import { verifyToken } from "../utils/jwt.js";
 
 export const requireAuth = (req, _res, next) => {
-  const token = req.cookies?.[env.cookieName];
+  const authHeader = req.headers.authorization || "";
+  const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+  const token = bearerToken || req.cookies?.[env.cookieName];
 
   if (!token) {
     return next({ statusCode: 401, message: "Unauthorized" });

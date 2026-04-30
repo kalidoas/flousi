@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { getAnalyticsByCategory, getAnalyticsByDay } from "../controllers/analytics.controller.js";
+import {
+  getAnalyticsByCategory,
+  getAnalyticsByDay,
+  getAnalyticsIncomeBySource,
+  getAnalyticsTotals
+} from "../controllers/analytics.controller.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -11,6 +16,8 @@ router.use(requireAuth);
 
 router.get("/by-category", validate(analyticsQuerySchema), asyncHandler(getAnalyticsByCategory));
 router.get("/by-day", validate(analyticsQuerySchema), asyncHandler(getAnalyticsByDay));
+router.get("/totals", validate(analyticsQuerySchema), asyncHandler(getAnalyticsTotals));
+router.get("/income-by-source", validate(analyticsQuerySchema), asyncHandler(getAnalyticsIncomeBySource));
 
 export default router;
 

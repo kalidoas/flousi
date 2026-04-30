@@ -13,7 +13,7 @@ export default function ProtectedRoute({ isAuthenticated, isLoading, children })
             <LoadingSkeleton className="h-20" />
           </div>
           <LoadingSkeleton className="h-10 w-full" />
-          <p className="text-sm text-slate-500 dark:text-slate-400">Loading your dashboard...</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">جارٍ تحميل حسابك...</p>
         </div>
       </div>
     );

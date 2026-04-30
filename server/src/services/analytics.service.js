@@ -32,6 +32,15 @@ const getLossFilter = (userId, period) => {
   };
 };
 
+const getIncomeFilter = (userId, period) => {
+  const startDate = getPeriodStartDate(period);
+
+  return {
+    userId,
+    ...(startDate ? { date: { gte: startDate } } : {})
+  };
+};
+
 export const getLossesByCategory = async (userId, period) => {
   const rows = await prisma.lossEntry.findMany({
     where: getLossFilter(userId, period),
@@ -88,6 +97,57 @@ export const getLossesByDay = async (userId, period) => {
   return {
     days,
     totalLost
+  };
+};
+
+export const getTotals = async (userId, period) => {
+  const [incomeAgg, lossAgg] = await Promise.all([
+    prisma.income.aggregate({
+      where: getIncomeFilter(userId, period),
+      _sum: { amount: true }
+    }),
+    prisma.lossEntry.aggregate({
+      where: getLossFilter(userId, period),
+      _sum: { amount: true }
+    })
+  ]);
+
+  const totalIncome = Number(incomeAgg._sum.amount || 0);
+  const totalLosses = Number(lossAgg._sum.amount || 0);
+
+  return {
+    totalIncome,
+    totalLosses,
+    net: totalIncome - totalLosses
+  };
+};
+
+export const getIncomeBySource = async (userId, period) => {
+  const rows = await prisma.income.findMany({
+    where: getIncomeFilter(userId, period),
+    select: {
+      source: true,
+      amount: true
+    }
+  });
+
+  const totals = new Map();
+
+  for (const row of rows) {
+    const key = row.source;
+    const previous = totals.get(key) || 0;
+    totals.set(key, previous + Number(row.amount));
+  }
+
+  const sources = Array.from(totals.entries())
+    .map(([source, total]) => ({ source, total }))
+    .sort((a, b) => b.total - a.total);
+
+  const totalIncome = sources.reduce((sum, item) => sum + item.total, 0);
+
+  return {
+    sources,
+    totalIncome
   };
 };
 

@@ -43,12 +43,12 @@ export default function GoalForm({ initialData, onSubmit, onCancel, isSubmitting
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-slate-900 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 sm:p-5">
-      <h2 className="text-lg font-semibold">{initialData ? "Edit goal" : "Add new goal"}</h2>
+      <h2 className="text-lg font-semibold">{initialData ? "تعديل الهدف" : "إضافة هدف جديد"}</h2>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <input
           className="rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
           name="name"
-          placeholder="Goal name"
+          placeholder="اسم الهدف"
           value={form.name}
           onChange={handleChange}
           required
@@ -67,7 +67,7 @@ export default function GoalForm({ initialData, onSubmit, onCancel, isSubmitting
           type="number"
           min="1"
           step="0.01"
-          placeholder="Target amount (MAD)"
+          placeholder="المبلغ المستهدف (درهم)"
           value={form.targetAmount}
           onChange={handleChange}
           required
@@ -78,7 +78,7 @@ export default function GoalForm({ initialData, onSubmit, onCancel, isSubmitting
           type="number"
           min="1"
           step="0.01"
-          placeholder="Monthly savings (MAD)"
+          placeholder="الادخار الشهري (درهم)"
           value={form.monthlySavings}
           onChange={handleChange}
           required
@@ -89,7 +89,7 @@ export default function GoalForm({ initialData, onSubmit, onCancel, isSubmitting
           type="number"
           min="0"
           step="0.01"
-          placeholder="Amount saved so far"
+          placeholder="المبلغ المدخر حتى الآن"
           value={form.amountSaved}
           onChange={handleChange}
         />
@@ -109,11 +109,11 @@ export default function GoalForm({ initialData, onSubmit, onCancel, isSubmitting
           disabled={isSubmitting}
           className="rounded-md bg-emerald-500 px-4 py-2 font-semibold text-slate-950 disabled:opacity-60"
         >
-          {isSubmitting ? "Saving..." : initialData ? "Save changes" : "Create goal"}
+          {isSubmitting ? "جارٍ الحفظ..." : initialData ? "حفظ التعديل" : "إنشاء الهدف"}
         </button>
         {onCancel ? (
           <button type="button" onClick={onCancel} className="rounded-md bg-slate-200 px-4 py-2 text-slate-900 dark:bg-slate-800 dark:text-slate-100">
-            Cancel
+            إلغاء
           </button>
         ) : null}
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import EmptyState from "../components/EmptyState.jsx";
 import LoadingSkeleton from "../components/LoadingSkeleton.jsx";
@@ -16,12 +16,12 @@ import {
 import { analyticsApi } from "../lib/analyticsApi.js";
 
 const CATEGORY_LABELS = {
-  LAKHWAA: "Leak",
-  CAFE: "Coffee / Cafe",
-  FOOD: "Food",
-  OUTINGS: "Outings",
-  SHOPPING: "Shopping",
-  OTHER: "Other"
+  LAKHWAA: "لخوا",
+  CAFE: "قهوة / كافيه",
+  FOOD: "أكل",
+  OUTINGS: "خروجات",
+  SHOPPING: "شراء حاجة",
+  OTHER: "أخرى"
 };
 
 export default function Analytics() {
@@ -31,6 +31,8 @@ export default function Analytics() {
   const [categoryData, setCategoryData] = useState([]);
   const [dayData, setDayData] = useState([]);
   const [biggestDrain, setBiggestDrain] = useState(null);
+  const [incomeBySourceData, setIncomeBySourceData] = useState([]);
+  const [totals, setTotals] = useState({ income: 0, loss: 0, net: 0 });
 
   useEffect(() => {
     const load = async () => {
@@ -38,9 +40,11 @@ export default function Analytics() {
       setError("");
 
       try {
-        const [byCategory, byDay] = await Promise.all([
+        const [byCategory, byDay, incomeBySource, totalsData] = await Promise.all([
           analyticsApi.byCategory(period),
-          analyticsApi.byDay(period)
+          analyticsApi.byDay(period),
+          analyticsApi.incomeBySource(period),
+          analyticsApi.totals(period)
         ]);
 
         setCategoryData(
@@ -57,9 +61,17 @@ export default function Analytics() {
           }))
         );
 
+        setIncomeBySourceData(
+          (incomeBySource.sources || []).map((item) => ({
+            name: item.source,
+            total: Number(item.total)
+          }))
+        );
+
+        setTotals(totalsData);
         setBiggestDrain(byCategory.biggestDrain || null);
       } catch (apiError) {
-        setError(apiError.response?.data?.message || "تعذر تحميل التحليلات");
+          setError(apiError.response?.data?.message || "تعذر تحميل التحليلات");
       } finally {
         setLoading(false);
       }
@@ -68,10 +80,7 @@ export default function Analytics() {
     load();
   }, [period]);
 
-  const totalLost = useMemo(
-    () => categoryData.reduce((sum, item) => sum + Number(item.total), 0),
-    [categoryData]
-  );
+  const netColor = totals.net >= 0 ? "text-emerald-500 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400";
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
@@ -79,11 +88,11 @@ export default function Analytics() {
         <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold">التحليلات</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-300">فهم فين كيمشيو فلوسك باش توقف النزيف</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">افهم فين كيمشيو فلوسك ووقف التسريبات.</p>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Link to="/" className="rounded-md bg-slate-800 px-4 py-2 text-sm text-white">Dashboard</Link>
+            <Link to="/" className="rounded-md bg-slate-800 px-4 py-2 text-sm text-white">لوحة التحكم</Link>
             <Link to="/goals" className="rounded-md bg-indigo-600 px-4 py-2 text-sm text-white">الأهداف</Link>
             <select
               className="rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
@@ -91,9 +100,9 @@ export default function Analytics() {
               onChange={(event) => setPeriod(event.target.value)}
             >
               <option value="day">اليوم</option>
-              <option value="week">هاد السيمانة</option>
-              <option value="month">هاد الشهر</option>
-              <option value="all">كلشي</option>
+              <option value="week">هذا الأسبوع</option>
+              <option value="month">هذا الشهر</option>
+              <option value="all">كل الوقت</option>
             </select>
           </div>
         </header>
@@ -102,22 +111,59 @@ export default function Analytics() {
 
         <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
           <article className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-sm text-slate-600 dark:text-slate-300">إجمالي الخسائر</p>
-            <p className="text-2xl font-semibold text-rose-500 dark:text-rose-400">{loading ? <LoadingSkeleton className="mt-2 h-8 w-28" /> : `${totalLost.toFixed(2)} MAD`}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">إجمالي الدخل هذا الشهر</p>
+            <p className="text-2xl font-semibold text-emerald-500 dark:text-emerald-400">{loading ? <LoadingSkeleton className="mt-2 h-8 w-28" /> : `${totals.income.toFixed(2)} درهم`}</p>
           </article>
+          <article className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-sm text-slate-600 dark:text-slate-300">إجمالي الخسائر هذا الشهر</p>
+            <p className="text-2xl font-semibold text-rose-500 dark:text-rose-400">{loading ? <LoadingSkeleton className="mt-2 h-8 w-28" /> : `${totals.loss.toFixed(2)} درهم`}</p>
+          </article>
+          <article className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-sm text-slate-600 dark:text-slate-300">الصافي</p>
+            <p className={`text-2xl font-semibold ${netColor}`}>{loading ? <LoadingSkeleton className="mt-2 h-8 w-28" /> : `${totals.net.toFixed(2)} درهم`}</p>
+          </article>
+        </div>
+
+        <div className="mb-6 grid grid-cols-1 gap-3">
           <article className="rounded-2xl border border-slate-200 bg-white p-4 md:col-span-2 dark:border-slate-800 dark:bg-slate-900">
             <p className="text-sm text-slate-600 dark:text-slate-300">أكبر نزيف</p>
             {loading ? (
               <LoadingSkeleton className="mt-2 h-8 w-80" />
             ) : (
               <p className="text-xl font-semibold">
-                {biggestDrain ? `${CATEGORY_LABELS[biggestDrain.category] || biggestDrain.category} - ${Number(biggestDrain.total).toFixed(2)} MAD` : "ماكايناش بيانات كافية"}
+                {biggestDrain ? `${CATEGORY_LABELS[biggestDrain.category] || biggestDrain.category} - ${Number(biggestDrain.total).toFixed(2)} درهم` : "لا توجد بيانات كافية بعد"}
               </p>
             )}
           </article>
         </div>
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="mb-3 text-lg font-semibold">الدخل حسب المصدر</h2>
+            <div className="h-80">
+              {loading ? (
+                <div className="space-y-3">
+                  <LoadingSkeleton className="h-64" />
+                </div>
+              ) : incomeBySourceData.length === 0 ? (
+                <EmptyState
+                  title="لا توجد بيانات للدخل بعد"
+                  description="أضف بعض الدخل باش يبان الرسم هنا."
+                />
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={incomeBySourceData} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <XAxis dataKey="name" stroke="#cbd5e1" />
+                    <YAxis stroke="#cbd5e1" />
+                    <Tooltip />
+                    <Bar dataKey="total" fill="#22c55e" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </section>
+
           <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
             <h2 className="mb-3 text-lg font-semibold">الخسائر حسب الفئة</h2>
             <div className="h-80">
@@ -127,8 +173,8 @@ export default function Analytics() {
                 </div>
               ) : categoryData.length === 0 ? (
                 <EmptyState
-                  title="No category data yet"
-                  description="Add some losses to see which category drains your budget the most."
+                  title="لا توجد بيانات للفئات بعد"
+                  description="أضف بعض الخسائر باش يبان شكون كيسحب من الميزانية أكثر."
                 />
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -144,15 +190,15 @@ export default function Analytics() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
             <h2 className="mb-3 text-lg font-semibold">الخسائر اليومية</h2>
             <div className="h-80">
               {loading ? (
                 <LoadingSkeleton className="h-64" />
               ) : dayData.length === 0 ? (
                 <EmptyState
-                  title="No daily data yet"
-                  description="Once you enter daily losses, the chart will appear here."
+                  title="لا توجد بيانات يومية بعد"
+                  description="منين تدخل الخسائر اليومية غادي يبان الرسم هنا."
                 />
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -172,4 +218,3 @@ export default function Analytics() {
     </main>
   );
 }
-
