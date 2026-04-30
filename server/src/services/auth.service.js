@@ -90,12 +90,12 @@ export const updateUserPasswordByEmail = async (email, newPassword) => {
 
 export const deleteUserAccount = async ({ userId, email }) =>
   prisma.$transaction([
-    prisma.passwordReset.deleteMany({ where: { email } }),
     prisma.goalContribution.deleteMany({ where: { userId } }),
     prisma.goal.deleteMany({ where: { userId } }),
     prisma.lossEntry.deleteMany({ where: { userId } }),
     prisma.income.deleteMany({ where: { userId } }),
     prisma.budget.deleteMany({ where: { userId } }),
+    prisma.passwordReset.deleteMany({ where: { email } }),
     prisma.user.delete({ where: { id: userId } })
   ]);
 
