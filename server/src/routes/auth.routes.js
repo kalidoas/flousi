@@ -27,9 +27,7 @@ router.get(
   }),
   (req, res) => {
     const token = signToken(req.user.id);
-    const redirectUrl = new URL(env.frontendUrl);
-    redirectUrl.searchParams.set("token", token);
-    res.redirect(redirectUrl.toString());
+    res.redirect(`${env.frontendUrl}/?token=${token}`);
   }
 );
 

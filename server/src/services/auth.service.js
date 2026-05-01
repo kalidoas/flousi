@@ -132,9 +132,17 @@ export const markPasswordResetUsed = (id) =>
     data: { used: true }
   });
 
-export const findOrCreateGoogleUser = async ({ email, name }) => {
+export const findOrCreateGoogleUser = async ({ email, name, googleId, avatar }) => {
   const existing = await prisma.user.findUnique({ where: { email } });
+  
   if (existing) {
+    if (!existing.googleId) {
+      return prisma.user.update({
+        where: { email },
+        data: { googleId, avatar: avatar || existing.avatar },
+        select: userSelect
+      });
+    }
     return {
       id: existing.id,
       email: existing.email,
@@ -143,14 +151,12 @@ export const findOrCreateGoogleUser = async ({ email, name }) => {
     };
   }
 
-  const tempPassword = crypto.randomUUID();
-  const hashed = await hashPassword(tempPassword);
-
   return prisma.user.create({
     data: {
       email,
       name,
-      password: hashed,
+      googleId,
+      avatar,
       budget: {
         create: {
           monthlyIncome: 0

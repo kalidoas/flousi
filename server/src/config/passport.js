@@ -9,18 +9,20 @@ if (env.googleClientId && env.googleClientSecret) {
       {
         clientID: env.googleClientId,
         clientSecret: env.googleClientSecret,
-        callbackURL: "/api/auth/google/callback"
+        callbackURL: env.isProduction ? `${process.env.BACKEND_URL || "https://flousi-production.up.railway.app"}/api/auth/google/callback` : "/api/auth/google/callback"
       },
       async (_accessToken, _refreshToken, profile, done) => {
         try {
           const email = profile.emails?.[0]?.value;
           const name = profile.displayName || email?.split("@")[0] || "Google User";
+          const googleId = profile.id;
+          const avatar = profile.photos?.[0]?.value;
 
           if (!email) {
             return done(null, false, { message: "Google account email not available" });
           }
 
-          const user = await findOrCreateGoogleUser({ email, name });
+          const user = await findOrCreateGoogleUser({ email, name, googleId, avatar });
           return done(null, user);
         } catch (error) {
           return done(error);
@@ -29,4 +31,3 @@ if (env.googleClientId && env.googleClientSecret) {
     )
   );
 }
-
